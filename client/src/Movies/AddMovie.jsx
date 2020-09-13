@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-const AddMovie = () => {
+const AddMovie = ({ setMovieList }) => {
 	const [movie, setMovie] = useState({
 		title: '',
 		director: '',
@@ -10,10 +11,20 @@ const AddMovie = () => {
 
 	const onSubmit = (e) => {
 		e.preventDefault();
+		axios
+			.post(`http://localhost:5000/api/movies/`, movie)
+			.then((res) => {
+				console.log('AddMovie onSubmit res: ', res);
+				setMovieList(res.data);
+			})
+			.catch((err) => console.log(err));
 	};
 
 	const onChange = (e) => {
-		setMovie({ ...movie, [e.target.name]: e.target.value });
+		e.persist();
+		e.target.name === 'stars'
+			? (e.target.value = e.target.value.split(','))
+			: setMovie({ ...movie, [e.target.name]: e.target.value });
 	};
 
 	return (

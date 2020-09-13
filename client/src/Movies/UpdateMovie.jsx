@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 
 const UpdateMovie = () => {
+	const history = useHistory();
 	const { id } = useParams();
 	const [updateMovie, setUpdateMovie] = useState({
 		title: '',
@@ -11,13 +12,25 @@ const UpdateMovie = () => {
 		stars: ['Brian', 'Noah', 'Other Noah'],
 	});
 
+	useEffect(() => {
+		axios
+			.get(`http://localhost:5000/api/movies/${id}`)
+			.then((res) => {
+				setUpdateMovie(res.data);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}, [id]);
+
 	const onSubmit = (e) => {
 		e.preventDefault();
 		console.log('UpdateMovie onSubmit called.');
 		axios
-			.put(`http://localhost:5000/update-movie/${id}`, updateMovie)
+			.put(`http://localhost:5000/api/movies/${id}`, updateMovie)
 			.then((res) => {
-				console.log('onSubmit res: ', res);
+				console.log('UpdateMovie onSubmit res: ', res);
+				history.push(`/movies/${id}`);
 			})
 			.catch((err) => {
 				console.log('onSubmit error: ', err);
@@ -25,7 +38,18 @@ const UpdateMovie = () => {
 	};
 
 	const editValue = (e) => {
-		setUpdateMovie({ ...updateMovie, [e.target.name]: e.target.value });
+		e.persist();
+		let value = e.target.value;
+		if (e.target.name === 'metascore') {
+			value = parseInt(value, 10);
+		}
+		if (e.target.name === 'stars') {
+			value = value.split(',');
+		}
+		setUpdateMovie({
+			...updateMovie,
+			[e.target.name]: value,
+		});
 	};
 
 	return (
@@ -33,11 +57,23 @@ const UpdateMovie = () => {
 			<form onSubmit={onSubmit}>
 				<label htmlFor='title'>Update Title</label>
 				<br />
-				<input type='text' name='title' id='title' onChange={editValue} />
+				<input
+					type='text'
+					name='title'
+					id='title'
+					onChange={editValue}
+					value={updateMovie.title}
+				/>
 				<br />
 				<label htmlFor='director'>Update Director</label>
 				<br />
-				<input type='text' name='director' id='director' onChange={editValue} />
+				<input
+					type='text'
+					name='director'
+					id='director'
+					onChange={editValue}
+					value={updateMovie.director}
+				/>
 				<br />
 				<label htmlFor='metascore'>Update Metascore</label>
 				<br />
@@ -46,11 +82,18 @@ const UpdateMovie = () => {
 					name='metascore'
 					id='metascore'
 					onChange={editValue}
+					value={updateMovie.metascore}
 				/>
 				<br />
 				<label htmlFor='stars'>Update Stars</label>
 				<br />
-				<input type='text' name='stars' id='stars' onChange={editValue} />
+				<input
+					type='text'
+					name='stars'
+					id='stars'
+					onChange={editValue}
+					value={updateMovie.stars}
+				/>
 				<br />
 				<button type='submit'>Update</button>
 			</form>
